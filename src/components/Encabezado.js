@@ -1,16 +1,15 @@
 ﻿// src/components/Encabezado.js
 
 import React, { useState } from 'react';
-import { AppBar, Toolbar, IconButton, Typography, Box, useMediaQuery, Drawer, MenuItem, Grid } from '@mui/material';
+import { AppBar, Toolbar, IconButton, Typography, Box, useMediaQuery, Drawer, MenuItem } from '@mui/material';
 import { Menu as MenuIcon, ExitToApp, PersonAdd, Gavel, Help, Settings, UploadFile, Assessment } from '@mui/icons-material';
 import { useSelector, useDispatch } from 'react-redux';
-// Importamos las acciones desde authSlice.js
 import { logout } from '../slices/authSlice';
 
 function Encabezado() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const isMobile = useMediaQuery('(max-width: 600px)');
-    const user = useSelector((state) => state.auth.user); // Corregimos a 'auth' según el reducer del store
+    const user = useSelector((state) => state.auth.user);
     const dispatch = useDispatch();
 
     const toggleDrawer = () => {
@@ -18,11 +17,10 @@ function Encabezado() {
     };
 
     const handleLogout = () => {
-        dispatch(logout()); // Usamos la acción logout importada desde authSlice
+        dispatch(logout());
     };
 
     const menuItemsLoggedOut = [
-        { text: 'Entrar', icon: <ExitToApp /> },
         { text: 'Solicitar Acceso', icon: <PersonAdd /> },
         { text: 'Reglamentos', icon: <Gavel /> },
         { text: 'Ayuda', icon: <Help /> }
