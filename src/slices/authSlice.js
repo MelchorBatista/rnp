@@ -2,25 +2,33 @@
 
 import { createSlice } from '@reduxjs/toolkit';
 
+// Estado inicial para la autenticaci贸n
 const initialState = {
-    user: null, // Inicializamos user como null
-    isAuthenticated: false, // Inicializamos el estado de autenticaci髇 como false
+    user: null, // Almacena los datos del usuario si est谩 logueado
+    isAuthenticated: false, // Estado de autenticaci贸n
 };
 
+// Crear el slice de autenticaci贸n
 const authSlice = createSlice({
-    name: 'auth',
-    initialState,
+    name: 'auth', // Nombre del slice
+    initialState, // Estado inicial
     reducers: {
+        // Acci贸n para iniciar sesi贸n
         login: (state, action) => {
-            state.user = action.payload; // Asignamos el usuario al estado
-            state.isAuthenticated = true;
+            state.user = action.payload; // Asignamos los datos del usuario al estado
+            state.isAuthenticated = true; // Marcamos como autenticado
         },
+
+        // Acci贸n para cerrar sesi贸n
         logout: (state) => {
-            state.user = null; // Limpiamos el estado del usuario al cerrar sesi髇
-            state.isAuthenticated = false;
+            state.user = null; // Limpiamos los datos del usuario
+            state.isAuthenticated = false; // Marcamos como no autenticado
         },
     },
 });
 
+// Exportamos las acciones generadas autom谩ticamente por createSlice
 export const { login, logout } = authSlice.actions;
+
+// Exportamos el reducer para usarlo en el store
 export default authSlice.reducer;

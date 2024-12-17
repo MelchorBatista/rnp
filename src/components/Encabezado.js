@@ -4,12 +4,13 @@ import React, { useState } from 'react';
 import { AppBar, Toolbar, IconButton, Typography, Box, useMediaQuery, Drawer, MenuItem, Grid } from '@mui/material';
 import { Menu as MenuIcon, ExitToApp, PersonAdd, Gavel, Help, Settings, UploadFile, Assessment } from '@mui/icons-material';
 import { useSelector, useDispatch } from 'react-redux';
-import { logoutUser } from '../store/actions';
+// Importamos las acciones desde authSlice.js
+import { logout } from '../slices/authSlice';
 
 function Encabezado() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const isMobile = useMediaQuery('(max-width: 600px)');
-    const user = useSelector((state) => state.user);
+    const user = useSelector((state) => state.auth.user); // Corregimos a 'auth' según el reducer del store
     const dispatch = useDispatch();
 
     const toggleDrawer = () => {
@@ -17,7 +18,7 @@ function Encabezado() {
     };
 
     const handleLogout = () => {
-        dispatch(logoutUser());
+        dispatch(logout()); // Usamos la acción logout importada desde authSlice
     };
 
     const menuItemsLoggedOut = [
@@ -46,37 +47,33 @@ function Encabezado() {
 
                 {/* Contenedor con el logo y texto */}
                 <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
-                    {/* Logo */}
                     <img
                         src="https://uxkit.digital.gob.do/images/gob-icon.svg"
                         alt="Logo"
                         style={{
-                            height: '36px', // Aumento del 20% en el tamaño original
+                            height: '36px',
                             width: 'auto',
-                            marginRight: 8, // Espacio entre el logo y el texto
+                            marginRight: 8,
                         }}
                     />
 
-                    {/* Contenedor para "Recepción de" y "Nóminas Públicas" en divs separados */}
                     <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', margin: 0, padding: 0 }}>
-                        {/* "Recepción de" en su propio div */}
                         <div style={{ margin: 0, padding: 0 }}>
                             <Typography variant="h6" sx={{ color: 'white', fontSize: '1rem', margin: 0, padding: 0, lineHeight: 0.8 }}>
                                 Recepción de
                             </Typography>
                         </div>
 
-                        {/* "Nóminas Públicas" en su propio div */}
                         <div style={{ margin: 0, padding: 0 }}>
                             <Typography
                                 variant="h4"
                                 sx={{
                                     color: 'white',
                                     fontWeight: 'bold',
-                                    lineHeight: 0.85,  // Ajustando el espacio entre líneas
+                                    lineHeight: 0.85,
                                     fontSize: { xs: '2rem', sm: '1.80rem' },
-                                    margin: 0,  // Eliminar cualquier margen
-                                    padding: 0   // Eliminar cualquier padding
+                                    margin: 0,
+                                    padding: 0
                                 }}
                             >
                                 Nóminas Públicas
