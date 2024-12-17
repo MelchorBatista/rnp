@@ -14,7 +14,8 @@ function Pie() {
                 paddingBottom: '0.25rem', // Reducir el padding abajo
                 position: 'fixed',
                 bottom: 0,
-                width: '100%',
+                left: 0, // Asegura que el pie de página empiece desde la izquierda
+                width: '100%', // Asegura que el pie de página ocupe todo el ancho
                 textAlign: 'center',
                 zIndex: 1000, // Asegura que el pie de página esté por encima de otros elementos si es necesario
             }}

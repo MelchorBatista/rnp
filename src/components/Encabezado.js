@@ -9,18 +9,16 @@ function Encabezado() {
     const isMobile = useMediaQuery('(max-width: 600px)');
     const user = useSelector((state) => state.auth.user);
     const role = useSelector((state) => state.auth.role);
-    const error = useSelector((state) => state.auth.error); // Obtener el error del estado de autenticación
+    const error = useSelector((state) => state.auth.error);
     const dispatch = useDispatch();
-    const [showError, setShowError] = useState(false); // Estado local para controlar la visualización del error
+    const [showError, setShowError] = useState(false);
 
     useEffect(() => {
         if (error) {
-            setShowError(true); // Mostrar el error cuando el estado global cambia
+            setShowError(true);
             const timer = setTimeout(() => {
-                setShowError(false); // Ocultar el error después de 5 segundos
+                setShowError(false);
             }, 5000);
-
-            // Limpiar el temporizador si el componente se desmonta o si el error cambia
             return () => clearTimeout(timer);
         }
     }, [error]);
@@ -67,15 +65,15 @@ function Encabezado() {
     const drawerButtonStyle = {
         padding: '10px',
         borderRadius: '0',
-        width: '100%', // Botón ocupa toda la anchura
+        width: '100%',
         justifyContent: 'flex-start',
         '&:hover': {
-            backgroundColor: '#EE2A24', // Fondo rojo al hacer hover
+            backgroundColor: '#EE2A24',
             '& .MuiTypography-root': {
-                color: 'white', // Texto blanco durante el hover
+                color: 'white',
             },
             '& .MuiSvgIcon-root': {
-                color: 'white', // Icono blanco durante el hover
+                color: 'white',
             },
         },
     };
@@ -83,27 +81,36 @@ function Encabezado() {
     const horizontalButtonStyle = {
         padding: '8px 16px',
         borderRadius: '4px',
-        color: 'white', // Texto inicial blanco
-        backgroundColor: 'transparent', // Fondo inicial transparente
+        color: 'white',
+        backgroundColor: 'transparent',
         '&:hover': {
-            backgroundColor: '#EE2A24', // Fondo rojo en hover
-            color: 'white', // Texto blanco en hover
+            backgroundColor: '#EE2A24',
+            color: 'white',
         },
     };
 
-    const horizontalMenuStyle = {
+    const getMenuWidth = (numItems) => {
+        // Definir anchos para diferentes cantidades de elementos
+        if (numItems === 2) return '50%'; // 2 opciones, 50% de ancho
+        if (numItems === 3) return '33.33%'; // 3 opciones, 33.33% de ancho
+        if (numItems === 4) return '25%'; // 4 opciones, 25% de ancho
+        return '20%'; // 5 o más opciones, 20% de ancho
+    };
+
+    const horizontalMenuStyle = (numItems) => ({
         display: 'flex',
         flexDirection: 'row',
-        gap: '16px',
+        flexWrap: 'wrap', // Para permitir que los elementos se acomoden a una nueva fila si es necesario
+        gap: '4px',
         marginLeft: 'auto',
-        display: isMobile ? 'none' : 'flex',
         backgroundColor: '#003876',
-        padding: '8px',
-    };
+        width: '100%',
+        maxWidth: '100%',
+    });
 
     const drawerMenuStyle = {
         width: 250,
-        backgroundColor: 'white', // Fondo blanco en Drawer
+        backgroundColor: 'white',
     };
 
     const renderMenuItems = (menuItems, isDrawer) => {
@@ -118,7 +125,7 @@ function Encabezado() {
                     variant="body2"
                     sx={{
                         marginLeft: 1,
-                        color: isDrawer ? 'black' : 'white', // Texto negro por defecto en Drawer
+                        color: isDrawer ? 'black' : 'white',
                         transition: 'color 0.3s',
                     }}
                 >
@@ -129,7 +136,7 @@ function Encabezado() {
     };
 
     return (
-        <AppBar position="static" sx={{ backgroundColor: '#003876' }}>
+        <AppBar position="static" sx={{ backgroundColor: '#003876', width: '100%', zIndex: 1300 }}>
             <Toolbar>
                 {isMobile && (
                     <IconButton
@@ -151,21 +158,21 @@ function Encabezado() {
                             height: '36px',
                             width: 'auto',
                             marginRight: 8,
+                            maxWidth: '100%',
                         }}
                     />
                     <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                         <Typography variant="h6" sx={{ color: 'white', fontSize: '1rem', lineHeight: 0.5, paddingTop: 1, paddingBottom: 0.25 }}>
                             Recepción de
                         </Typography>
-                        <Typography variant="h4" sx={{ color: 'white', fontWeight: 'bold', fontSize: '1.80rem', lineHeight: 0.95  }}>
+                        <Typography variant="h4" sx={{ color: 'white', fontWeight: 'bold', fontSize: '1.60rem', lineHeight: 0.95 }}>
                             Nóminas Públicas
                         </Typography>
                     </Box>
                 </Box>
 
-
-                {!drawerOpen && (
-                    <Box sx={horizontalMenuStyle}>
+                {!drawerOpen && !isMobile && (
+                    <Box sx={horizontalMenuStyle(menuItemsLoggedIn[role] ? menuItemsLoggedIn[role].length : 0)}>
                         {!user
                             ? renderMenuItems(menuItemsLoggedOut, false)
                             : renderMenuItems(menuItemsLoggedIn[role] || [], false)}
