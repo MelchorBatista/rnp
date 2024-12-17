@@ -2,33 +2,49 @@
 
 import { createSlice } from '@reduxjs/toolkit';
 
-// Estado inicial para la autenticación
+// Definir los usuarios y sus roles
+const users = [
+    { username: 'admin@test.do', password: 'Admin', role: 'Administrador' },
+    { username: 'policia@test.do', password: 'Polizonte', role: 'Institucional' },
+    { username: 'contraloria@test.do', password: 'Chequear', role: 'Consulta' },
+    { username: 'ayuda@test.do', password: 'Ayudar', role: 'Mesa de Ayuda' },
+];
+
 const initialState = {
-    user: null, // Almacena los datos del usuario si está logueado
-    isAuthenticated: false, // Estado de autenticación
+    user: null, // Almacena los datos del usuario
+    isAuthenticated: false, // Si el usuario está autenticado
+    role: null, // El rol del usuario
 };
 
-// Crear el slice de autenticación
 const authSlice = createSlice({
-    name: 'auth', // Nombre del slice
-    initialState, // Estado inicial
+    name: 'auth',
+    initialState,
     reducers: {
-        // Acción para iniciar sesión
         login: (state, action) => {
-            state.user = action.payload; // Asignamos los datos del usuario al estado
-            state.isAuthenticated = true; // Marcamos como autenticado
-        },
+            const { username, password } = action.payload;
 
-        // Acción para cerrar sesión
+            // Verificar si el usuario y la contraseña son correctos
+            const user = users.find(
+                (u) => u.username === username && u.password === password
+            );
+
+            if (user) {
+                state.user = user; // Almacenar el usuario
+                state.isAuthenticated = true;
+                state.role = user.role; // Almacenar el rol del usuario
+            } else {
+                state.user = null;
+                state.isAuthenticated = false;
+                state.role = null;
+            }
+        },
         logout: (state) => {
-            state.user = null; // Limpiamos los datos del usuario
-            state.isAuthenticated = false; // Marcamos como no autenticado
+            state.user = null;
+            state.isAuthenticated = false;
+            state.role = null;
         },
     },
 });
 
-// Exportamos las acciones generadas automáticamente por createSlice
 export const { login, logout } = authSlice.actions;
-
-// Exportamos el reducer para usarlo en el store
 export default authSlice.reducer;

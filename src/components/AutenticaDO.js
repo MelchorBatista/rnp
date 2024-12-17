@@ -1,7 +1,7 @@
 // src/components/AutenticaDO.js
 
 import React, { useState } from 'react';
-import { TextField, Button, Box, Typography, Grid, Paper, IconButton } from '@mui/material';
+import { TextField, Button, Box, Typography, Grid, Paper, IconButton, Alert } from '@mui/material';
 import { useDispatch } from 'react-redux';
 import { login } from '../slices/authSlice';
 import { Email as EmailIcon, Lock as LockIcon } from '@mui/icons-material';
@@ -9,12 +9,21 @@ import { Email as EmailIcon, Lock as LockIcon } from '@mui/icons-material';
 function AutenticaDO() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState(''); // Estado para manejar el mensaje de error
     const dispatch = useDispatch();
 
     // Función para manejar el envío del formulario
     const handleSubmit = (e) => {
         e.preventDefault();
-        const user = { email, password };
+        // Validar si los campos están vacíos
+        if (!email || !password) {
+            setError('Todos los campos son obligatorios.'); // Mostramos el error si los campos están vacíos
+            return;
+        }
+
+        // Si los campos no están vacíos, enviamos la acción de login
+        setError(''); // Limpiamos el mensaje de error
+        const user = { username: email, password };
         dispatch(login(user)); // Enviar los datos de usuario al estado global
     };
 
@@ -31,6 +40,9 @@ function AutenticaDO() {
             <Typography variant="h5" align="center" sx={{ marginBottom: '30px', fontWeight: 'bold' }}>
                 Iniciar sesión
             </Typography>
+
+            {/* Mostrar error si los campos están vacíos */}
+            {error && <Alert severity="error" sx={{ marginBottom: '20px' }}>{error}</Alert>}
 
             <form onSubmit={handleSubmit}>
                 <Grid container spacing={3}>
