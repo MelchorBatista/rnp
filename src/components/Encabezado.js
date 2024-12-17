@@ -1,5 +1,5 @@
-﻿import React, { useState } from 'react';
-import { AppBar, Toolbar, IconButton, Typography, Box, useMediaQuery, Drawer } from '@mui/material';
+﻿import React, { useState, useEffect } from 'react';
+import { AppBar, Toolbar, IconButton, Typography, Box, useMediaQuery, Drawer, Alert } from '@mui/material';
 import { Menu as MenuIcon, PersonAdd, Gavel, Help, Settings, Assessment, CloudUpload } from '@mui/icons-material';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../slices/authSlice';
@@ -9,7 +9,21 @@ function Encabezado() {
     const isMobile = useMediaQuery('(max-width: 600px)');
     const user = useSelector((state) => state.auth.user);
     const role = useSelector((state) => state.auth.role);
+    const error = useSelector((state) => state.auth.error); // Obtener el error del estado de autenticación
     const dispatch = useDispatch();
+    const [showError, setShowError] = useState(false); // Estado local para controlar la visualización del error
+
+    useEffect(() => {
+        if (error) {
+            setShowError(true); // Mostrar el error cuando el estado global cambia
+            const timer = setTimeout(() => {
+                setShowError(false); // Ocultar el error después de 5 segundos
+            }, 5000);
+
+            // Limpiar el temporizador si el componente se desmonta o si el error cambia
+            return () => clearTimeout(timer);
+        }
+    }, [error]);
 
     const toggleDrawer = () => {
         setDrawerOpen(!drawerOpen);
@@ -27,8 +41,8 @@ function Encabezado() {
 
     const menuItemsLoggedIn = {
         Administrador: [
-            { text: 'Agregar Usuarios', icon: <PersonAdd /> },
             { text: 'Configuración', icon: <Settings /> },
+            { text: 'Usuarios', icon: <PersonAdd /> },
             { text: 'Subir Nómina', icon: <CloudUpload /> },
             { text: 'Reportes', icon: <Assessment /> },
             { text: 'Ayuda', icon: <Help /> }
@@ -37,6 +51,15 @@ function Encabezado() {
             { text: 'Configuración', icon: <Settings /> },
             { text: 'Subir Nómina', icon: <CloudUpload /> },
             { text: 'Reportes', icon: <Assessment /> },
+            { text: 'Ayuda', icon: <Help /> }
+        ],
+        Consulta: [
+            { text: 'Configuración', icon: <Settings /> },
+            { text: 'Reportes', icon: <Assessment /> },
+            { text: 'Ayuda', icon: <Help /> }
+        ],
+        Ayuda: [
+            { text: 'Configuración', icon: <Settings /> },
             { text: 'Ayuda', icon: <Help /> }
         ],
     };
@@ -139,6 +162,8 @@ function Encabezado() {
                         </Typography>
                     </Box>
                 </Box>
+
+
                 {!drawerOpen && (
                     <Box sx={horizontalMenuStyle}>
                         {!user
