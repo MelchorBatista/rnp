@@ -15,6 +15,7 @@ const initialState = {
     isAuthenticated: false, // Si el usuario está autenticado
     role: null,          // El rol del usuario
     error: null,         // Mensaje de error
+    selectedOption: null, // Nueva propiedad para la opción seleccionada
 };
 
 const authSlice = createSlice({
@@ -55,9 +56,13 @@ const authSlice = createSlice({
             state.isAuthenticated = false;
             state.role = null;
             state.error = null; // Limpiar errores
+            state.selectedOption = null; // Limpiar la opción seleccionada al hacer logout
+        },
+        setSelectedOption: (state, action) => {
+            state.selectedOption = action.payload; // Actualizamos la opción seleccionada
         },
     },
 });
 
-export const { login, logout } = authSlice.actions;
+export const { login, logout, setSelectedOption } = authSlice.actions;
 export default authSlice.reducer;

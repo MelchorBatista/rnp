@@ -1,8 +1,9 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { AppBar, Toolbar, IconButton, Typography, Box, useMediaQuery, Drawer, Alert } from '@mui/material';
+import { AppBar, Toolbar, IconButton, Typography, Box, useMediaQuery, Drawer } from '@mui/material';
 import { Menu as MenuIcon, PersonAdd, Gavel, Help, Settings, Assessment, CloudUpload } from '@mui/icons-material';
 import { useSelector, useDispatch } from 'react-redux';
-import { logout } from '../slices/authSlice';
+import { logout, setSelectedOption } from '../slices/authSlice'; // Importamos la acción setSelectedOption
+import SubirNominaJSON from './SubirNominaJSON';  // Asegúrate de que la ruta sea correcta
 
 function Encabezado() {
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -12,6 +13,7 @@ function Encabezado() {
     const error = useSelector((state) => state.auth.error);
     const dispatch = useDispatch();
     const [showError, setShowError] = useState(false);
+    const [open, setOpen] = useState(false);  // Inicializamos 'open' en false
 
     useEffect(() => {
         if (error) {
@@ -31,6 +33,14 @@ function Encabezado() {
         dispatch(logout());
     };
 
+    const handleMenuItemClick = (item) => {
+        if (item === 'SubirNomina') {
+          dispatch(setSelectedOption('SubirNomina')); // Actualizar la opción seleccionada
+          setOpen(true); // Abrir el cuadro de diálogo
+        }
+      };
+      
+
     const menuItemsLoggedOut = [
         { text: 'Solicitar Acceso', icon: <PersonAdd /> },
         { text: 'Reglamentos', icon: <Gavel /> },
@@ -41,13 +51,13 @@ function Encabezado() {
         Administrador: [
             { text: 'Configuración', icon: <Settings /> },
             { text: 'Usuarios', icon: <PersonAdd /> },
-            { text: 'Subir Nómina', icon: <CloudUpload /> },
+            { text: 'Subir Nómina', icon: <CloudUpload />, action: 'SubirNomina' }, // Añadimos la acción en el menú
             { text: 'Reportes', icon: <Assessment /> },
             { text: 'Ayuda', icon: <Help /> }
         ],
         Institucional: [
             { text: 'Configuración', icon: <Settings /> },
-            { text: 'Subir Nómina', icon: <CloudUpload /> },
+            { text: 'Subir Nómina', icon: <CloudUpload />, action: 'SubirNomina' }, // Acción para subir nómina
             { text: 'Reportes', icon: <Assessment /> },
             { text: 'Ayuda', icon: <Help /> }
         ],
@@ -119,6 +129,7 @@ function Encabezado() {
                 key={item.text}
                 color="inherit"
                 sx={isDrawer ? drawerButtonStyle : horizontalButtonStyle}
+                onClick={() => item.action && handleMenuItemClick(item.action)} // Llamamos a handleMenuItemClick cuando la opción tiene una acción
             >
                 {item.icon}
                 <Typography
@@ -198,6 +209,7 @@ function Encabezado() {
                     </Box>
                 </Drawer>
             )}
+            <SubirNominaJSON open={open} setOpen={setOpen} />
         </AppBar>
     );
 }
