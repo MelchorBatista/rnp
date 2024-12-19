@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Dialog, DialogContent, DialogTitle, Typography, LinearProgress, Button } from '@mui/material';
+import { Dialog, DialogContent, DialogTitle, Typography, LinearProgress, Button, Box } from '@mui/material';
 import CloudUpload from '@mui/icons-material/CloudUpload';
 
 function SubirNominaJSON({ open, setOpen }) {
@@ -7,27 +7,26 @@ function SubirNominaJSON({ open, setOpen }) {
   const [error, setError] = useState('');
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [processStarted, setProcessStarted] = useState(false);
-  const [headerValidationError, setHeaderValidationError] = useState('');
-  const [validData, setValidData] = useState(null);
-
+  const [jsonData, setJsonData] = useState(null);
   const fileInputRef = useRef(null);
 
-  const handleClose = () => {
-    setOpen(false); // Cierra el diálogo
+  // Resetear todos los estados antes de cargar un nuevo archivo
+  const resetFileInput = () => {
+    setFile(null);
+    setError('');
+    setProgress(0);
+    setLoading(false);
+    setJsonData(null); 
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''; 
+    }
   };
 
+  // Función para manejar el cambio de archivo
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
 
-    // Resetear estados antes de procesar un nuevo archivo
-    setFile(null);
-    setError('');
-    setHeaderValidationError('');
-    setValidData(null);
-    setProgress(0);
-    setLoading(false);
-    setProcessStarted(false);
+    resetFileInput();
 
     if (!selectedFile) {
       setError('No se seleccionó ningún archivo.');
@@ -41,39 +40,34 @@ function SubirNominaJSON({ open, setOpen }) {
 
     setFile(selectedFile);
     setLoading(true);
-    setProgress(0);
     readFileWithProgress(selectedFile);
 
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';  // Limpiar el input
+      fileInputRef.current.value = '';
     }
   };
 
+  // Función para leer el archivo con progreso
   const readFileWithProgress = (file) => {
     const reader = new FileReader();
+    const fileSize = file.size;
 
     reader.onprogress = (event) => {
       if (event.lengthComputable) {
-        const percentLoaded = Math.round((event.loaded / event.total) * 100);
+        const percentLoaded = Math.round((event.loaded / fileSize) * 100);
         setProgress(percentLoaded);
       }
     };
 
-    reader.onloadstart = () => {
-      setLoading(true);
-      setProgress(0);
-    };
-
     reader.onload = () => {
       try {
-        const jsonData = JSON.parse(reader.result);
-        console.log('Archivo JSON cargado correctamente', jsonData);
+        const data = JSON.parse(reader.result); // Intentamos parsear el JSON
+        setJsonData(data);
+        validateJsonData(data); // Llamamos a la validación después de parsear
         setLoading(false);
-        validateHeader(jsonData);
       } catch (err) {
-        setError('Formato de JSON Incorrecto.');
+        setError('Formato de JSON incorrecto. No se pudo parsear el archivo.');
         setLoading(false);
-        return;
       }
     };
 
@@ -85,42 +79,56 @@ function SubirNominaJSON({ open, setOpen }) {
     reader.readAsText(file);
   };
 
-  const validateHeader = (jsonData) => {
-    const currentYear = new Date().getFullYear();
-    const validYears = [currentYear, currentYear - 1];
+// Función para validar los datos del JSON
+const validateJsonData = (data) => {
+  const currentYear = new Date().getFullYear();
+  const previousYear = currentYear - 1; // El año anterior
 
-    if (!jsonData || typeof jsonData !== 'object') {
-      setHeaderValidationError('El archivo JSON está vacío o tiene una estructura incorrecta.');
-      return;
-    }
+  // Validar que el JSON tenga las claves necesarias
+  if (!data.hasOwnProperty('Anio') || !data.hasOwnProperty('Mes') || !data.hasOwnProperty('CodigoOrganismoMAP')) {
+    setError('El archivo JSON debe contener los campos "Anio", "Mes" y "CodigoOrganismoMAP".');
+    return; // Si hay un error, no cerramos el cuadro de diálogo
+  }
 
-    if (!validYears.includes(jsonData.Anio)) {
-      setHeaderValidationError(`El año debe ser ${currentYear} o ${currentYear - 1}.`);
-      return;
-    }
+  // Validar Año (Anio)
+  const anio = Number(data.Anio); // Asegurarnos de que Anio es un número
+  if (isNaN(anio)) {
+    setError('El Año debe ser un número.');
+    return;
+  }
+  if (anio !== currentYear && anio !== previousYear) {
+    setError('El Año debe ser el año actual o el año anterior.');
+    return;
+  }
 
-    if (jsonData.Mes < 1 || jsonData.Mes > 12) {
-      setHeaderValidationError('El mes debe estar entre 1 y 12.');
-      return;
-    }
+  // Validar Mes
+  if (isNaN(data.Mes)) {
+    setError('El Mes debe ser un número.');
+    return;
+  }
+  if (data.Mes < 1 || data.Mes > 12) {
+    setError('El Mes debe ser un número entre 1 y 12.');
+    return;
+  }
 
-    if (jsonData.CodigoOrganismoMAP <= 0 || isNaN(jsonData.CodigoOrganismoMAP)) {
-      setHeaderValidationError('El CodigoOrganismoMAP debe ser un número mayor a 0.');
-      return;
-    }
+  // Validar CodigoOrganismoMAP
+  const codigoOrganismoMAP = Number(data.CodigoOrganismoMAP); // Asegurarnos de que CodigoOrganismoMAP es un número
+  if (isNaN(codigoOrganismoMAP)) {
+    setError('El Código del Organismo debe ser un número.');
+    return;
+  }
+  if (codigoOrganismoMAP <= 0) {
+    setError('El Código del Organismo debe ser un número mayor que 0.');
+    return;
+  }
 
-    setValidData({
-      Anio: jsonData.Anio,
-      Mes: jsonData.Mes,
-      CodigoOrganismoMAP: jsonData.CodigoOrganismoMAP,
-    });
-    setHeaderValidationError('');
-    console.log('Encabezado del JSON válido.');
-    setOpen(false); // Cerrar el diálogo si el JSON es válido
-  };
+  // Si pasa todas las validaciones, cerramos el diálogo
+  setOpen(false); // Solo cerramos el diálogo si no hay errores
+};
+
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+    <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
       <DialogTitle
         sx={{
           display: 'flex',
@@ -130,70 +138,53 @@ function SubirNominaJSON({ open, setOpen }) {
           color: 'white',
           fontFamily: 'Roboto, sans-serif',
           fontWeight: 'bold',
-          paddingtop: '4px',
-          paddingBottom: '8px',
         }}
       >
-        <CloudUpload sx={{ fontSize: 30, paddingtop: '0' }} />
+        <CloudUpload sx={{ fontSize: 30 }} />
         Subir JSON de Nómina
       </DialogTitle>
-      <DialogContent
-        sx={{
-          padding: '20px',
-          backgroundColor: '#FFFFFF',
-          fontFamily: 'Roboto, sans-serif',
-        }}
-      >
-        <Typography variant="body1" sx={{ marginBottom: '10px', color: '#000000' }}>
-          Selecciona un archivo JSON para cargar los datos de la nómina.
-        </Typography>
+      <DialogContent sx={{ padding: '20px', backgroundColor: '#FFFFFF' }}>
+        <Box sx={{ marginTop: '20px', marginBottom: '20px' }}>
+          <Button
+            variant="contained"
+            component="label"
+            sx={{
+              backgroundColor: '#003876',
+              color: 'white',
+              fontFamily: 'Roboto, sans-serif',
+              fontWeight: 'bold',
+              '&:hover': {
+                backgroundColor: '#EE2A24',
+                color: '#FFFFFF',
+              },
+            }}
+          >
+            Subir JSON
+            <input
+              type="file"
+              accept=".json"
+              hidden
+              onChange={handleFileChange}
+              ref={fileInputRef}
+            />
+          </Button>
+        </Box>
 
-        <Button
-          variant="contained"
-          component="label"
-          sx={{
-            backgroundColor: '#003876',
-            color: 'white',
-            fontFamily: 'Roboto, sans-serif',
-            fontWeight: 'bold',
-            '&:hover': {
-              backgroundColor: '#EE2A24',
-              color: '#FFFFFF',
-            },
-            marginBottom: '10px',
-          }}
-        >
-          Subir JSON
-          <input
-            type="file"
-            accept=".json"
-            hidden
-            onChange={handleFileChange}
-            ref={fileInputRef}
-          />
-        </Button>
-
-        {file && (
-          <Typography variant="body2" sx={{ marginTop: '10px', color: '#000000' }}>
-            Archivo seleccionado: {file.name}
-          </Typography>
-        )}
         {loading && (
-          <div style={{ marginTop: '20px' }}>
-            <LinearProgress variant="determinate" value={progress} />
-            <Typography variant="body2" sx={{ marginTop: '10px', color: '#000000' }}>
-              Cargando... {progress}%
+          <Box sx={{ marginBottom: '20px' }}>
+            <Typography variant="body2" sx={{ color: '#000', marginBottom: '10px' }}>
+              Cargando JSON de Nómina...
             </Typography>
-          </div>
+            <LinearProgress variant="determinate" value={progress} />
+            <Typography variant="body2" sx={{ marginTop: '10px', color: '#000', textAlign: 'center' }}>
+              {progress}%
+            </Typography>
+          </Box>
         )}
+
         {error && (
-          <Typography variant="body2" sx={{ marginTop: '10px', color: '#EE2A24' }}>
+          <Typography variant="body2" sx={{ color: '#EE2A24', marginBottom: '20px' }}>
             {error}
-          </Typography>
-        )}
-        {headerValidationError && (
-          <Typography variant="body2" sx={{ marginTop: '10px', color: '#EE2A24' }}>
-            {headerValidationError}
           </Typography>
         )}
       </DialogContent>
