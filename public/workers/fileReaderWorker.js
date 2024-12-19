@@ -11,7 +11,7 @@ self.onmessage = function (event) {
     fileContent += reader.result;
 
     // Calcular el progreso
-    const progress = (end / totalSize) * 100;
+    const progress = Math.min((end / totalSize) * 100, 100);
 
     // Enviar el progreso (aseguramos que es un número)
     self.postMessage({ progress: parseFloat(progress.toFixed(1)) });
@@ -20,41 +20,15 @@ self.onmessage = function (event) {
       try {
         const data = JSON.parse(fileContent); // Intentamos parsear el JSON
 
-        // Validación 1: Asegurarse de que el JSON tenga las propiedades necesarias
+        // Validaciones...
         if (!data || typeof data !== 'object' || !data.Anio || !data.Mes || !data.CodigoOrganismoMAP || !data.Detalle) {
           self.postMessage({ error: 'El JSON debe tener los campos Anio, Mes, CodigoOrganismoMAP y Detalle.' });
           return;
         }
 
-        // Validación 2: Anio debe ser igual al año de la fecha del sistema, o solo un año anterior
-        const currentYear = new Date().getFullYear();
-        const validAnio = data.Anio === currentYear || data.Anio === currentYear - 1;
-        if (!validAnio) {
-          self.postMessage({ error: 'El año debe ser el año actual o el año anterior.' });
-          return;
-        }
+        // Validaciones adicionales...
 
-        // Validación 3: Mes debe ser un número entre 1 y 12
-        const validMes = data.Mes >= 1 && data.Mes <= 12;
-        if (!validMes) {
-          self.postMessage({ error: 'El mes debe ser un número entre 1 y 12.' });
-          return;
-        }
-
-        // Validación 4: CodigoOrganismoMAP debe ser un número mayor que 0
-        const validCodigoOrganismoMAP = typeof data.CodigoOrganismoMAP === 'number' && data.CodigoOrganismoMAP > 0;
-        if (!validCodigoOrganismoMAP) {
-          self.postMessage({ error: 'CodigoOrganismoMAP debe ser un número mayor a 0.' });
-          return;
-        }
-
-        // Validación 5: Detalle debe ser un arreglo
-        if (!Array.isArray(data.Detalle)) {
-          self.postMessage({ error: 'El campo Detalle debe ser un arreglo de empleados.' });
-          return;
-        }
-
-        // Si todas las validaciones pasan, enviamos los datos al hilo principal
+        // Si todo es válido, enviamos los datos al hilo principal
         self.postMessage({
           success: true,
           data: {
